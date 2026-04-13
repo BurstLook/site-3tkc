@@ -527,6 +527,7 @@ export default function App() {
     mensagem: "",
   });
   const [sent, setSent] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
@@ -536,11 +537,27 @@ export default function App() {
 
   useScrollReveal();
 
+  const validateForm = () => {
+    const errors = {};
+    if (!form.nome || form.nome.trim().length < 10)
+      errors.nome = "Nome deve ter pelo menos 10 caracteres.";
+    if (!form.telefone || form.telefone.trim().length < 10)
+      errors.telefone = "WhatsApp deve ter pelo menos 10 caracteres.";
+    if (!form.mensagem || form.mensagem.trim().length < 10)
+      errors.mensagem = "Mensagem deve ter pelo menos 10 caracteres.";
+    return errors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.nome || !form.telefone) return;
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
 
-    const msg = `Olá! Me chamo ${form.nome}. Interesse em: ${form.servico}. WhatsApp: ${form.telefone}.${form.mensagem ? " " + form.mensagem : ""}`;
+    const msg = `Olá! Me chamo ${form.nome}. Interesse em: ${form.servico}. WhatsApp: ${form.telefone}. ${form.mensagem}`;
 
     try {
       window.open(WA_LINK(msg), "_blank");
@@ -630,6 +647,24 @@ export default function App() {
       desc: "Acompanhamos nossos clientes após a entrega para garantir pleno funcionamento.",
     },
   ];
+
+  /* ── helper: estilo de input com erro ── */
+  const inputStyle = (field) => ({
+    width: "100%",
+    padding: "0.75rem 1rem",
+    borderRadius: 12,
+    border: `1px solid ${formErrors[field] ? "#f87171" : "#e2e8f0"}`,
+    background: formErrors[field] ? "#fff5f5" : "#f8fafc",
+    fontSize: "0.9rem",
+    outline: "none",
+  });
+
+  const errorMsg = (field) =>
+    formErrors[field] ? (
+      <p style={{ color: "#ef4444", fontSize: "0.72rem", marginTop: 4, marginBottom: 0 }}>
+        {formErrors[field]}
+      </p>
+    ) : null;
 
   return (
     <div
@@ -1646,8 +1681,8 @@ export default function App() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {[
-                  [Ico.Phone, "Comercial / Suporte", "(81) 99816-7453"],
-                  [Ico.Phone, "Financeiro", "(81) 3127-6897"],
+                  [Ico.Phone, "Comercial / Suporte", "(81) 97910-2097"],
+                  [Ico.Phone, "Financeiro", "(81) 99816-7453"],
                   [Ico.Mail, "Comercial", "atendimento@3tkcinformatica.com.br"],
                   [Ico.MapPin, "Endereço", "Rua Abelardo, nº 45 — Graças, Recife/PE"],
                 ].map(([icon, label, value], i) => (
@@ -1698,6 +1733,7 @@ export default function App() {
               </a>
             </div>
 
+            {/* ── FORMULÁRIO ── */}
             <div>
               {sent ? (
                 <div
@@ -1737,27 +1773,27 @@ export default function App() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+                  {/* Nome */}
                   <div>
                     <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", marginBottom: 4 }}>
                       Nome *
                     </label>
                     <input
                       required
+                      minLength={10}
                       value={form.nome}
-                      onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-                      placeholder="Seu nome completo"
-                      style={{
-                        width: "100%",
-                        padding: "0.75rem 1rem",
-                        borderRadius: 12,
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
-                        fontSize: "0.9rem",
-                        outline: "none",
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, nome: e.target.value }));
+                        if (formErrors.nome) setFormErrors((prev) => ({ ...prev, nome: undefined }));
                       }}
+                      placeholder="Seu nome completo"
+                      style={inputStyle("nome")}
                     />
+                    {errorMsg("nome")}
                   </div>
 
+                  {/* WhatsApp + Serviço */}
                   <div className="contact-form-row">
                     <div>
                       <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", marginBottom: 4 }}>
@@ -1765,20 +1801,17 @@ export default function App() {
                       </label>
                       <input
                         required
+                        minLength={10}
                         type="tel"
                         value={form.telefone}
-                        onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
-                        placeholder="(81) 9 0000-0000"
-                        style={{
-                          width: "100%",
-                          padding: "0.75rem 1rem",
-                          borderRadius: 12,
-                          border: "1px solid #e2e8f0",
-                          background: "#f8fafc",
-                          fontSize: "0.9rem",
-                          outline: "none",
+                        onChange={(e) => {
+                          setForm((f) => ({ ...f, telefone: e.target.value }));
+                          if (formErrors.telefone) setFormErrors((prev) => ({ ...prev, telefone: undefined }));
                         }}
+                        placeholder="(81) 9 0000-0000"
+                        style={inputStyle("telefone")}
                       />
+                      {errorMsg("telefone")}
                     </div>
 
                     <div>
@@ -1809,26 +1842,30 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Mensagem — agora obrigatória, mínimo 10 caracteres */}
                   <div>
                     <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                      Mensagem (opcional)
+                      Mensagem *
+                      <span style={{ fontWeight: 400, color: "#94a3b8", marginLeft: 6 }}>
+                        ({form.mensagem.trim().length}/10 mín.)
+                      </span>
                     </label>
                     <textarea
+                      required
+                      minLength={10}
                       rows={3}
                       value={form.mensagem}
-                      onChange={(e) => setForm((f) => ({ ...f, mensagem: e.target.value }))}
-                      placeholder="Descreva rapidamente o que você precisa"
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, mensagem: e.target.value }));
+                        if (formErrors.mensagem) setFormErrors((prev) => ({ ...prev, mensagem: undefined }));
+                      }}
+                      placeholder="Descreva rapidamente o que você precisa (mín. 10 caracteres)"
                       style={{
-                        width: "100%",
-                        padding: "0.75rem 1rem",
-                        borderRadius: 12,
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
-                        fontSize: "0.9rem",
-                        outline: "none",
+                        ...inputStyle("mensagem"),
                         resize: "none",
                       }}
                     />
+                    {errorMsg("mensagem")}
                   </div>
 
                   <button
@@ -1950,9 +1987,9 @@ export default function App() {
                 <li style={{ display: "flex", gap: 8, fontSize: "0.82rem", alignItems: "flex-start" }}>
                   <span style={{ color: "#4070f4", marginTop: 2 }}>{Ico.Phone}</span>
                   <span>
-                    Comercial: (81) 99816-7453
+                    Suporte: (81) 97910-2097
                     <br />
-                    Financeiro: (81) 3127-6897
+                    Financeiro: (81) 99816-7453
                   </span>
                 </li>
                 <li style={{ display: "flex", gap: 8, fontSize: "0.82rem", alignItems: "flex-start" }}>
