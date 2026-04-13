@@ -604,9 +604,9 @@ export default function App() {
       desc: "Instalação e suporte para redes corporativas e residenciais com equipamentos de qualidade.",
     },
     {
-      icon: Ico.Camera,
-      title: "Segurança Eletrônica",
-      desc: "Câmeras CFTV, alarmes e sensores de presença, fumaça e umidade para proteção total.",
+      icon: Ico.Zap,
+      title: "Suporte Técnico 24h",
+      desc: "Atendimento técnico 24 horas para resolver problemas de sistemas, redes e computadores com rapidez e segurança.",
     },
     {
       icon: Ico.Database,
